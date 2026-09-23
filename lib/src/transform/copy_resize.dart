@@ -10,6 +10,16 @@ double _linear(
         double icc, double inc, double icn, double inn, double kx, double ky) =>
     icc + kx * (inc - icc + ky * (icc + inn - icn - inc)) + ky * (icn - icc);
 
+void _setResizedPixel(Image image, int x, int y, num r, num g, num b, num a) {
+  if (image.numChannels == 2) {
+    final pixel = image.getPixel(x, y);
+    pixel[0] = r;
+    pixel[1] = a;
+  } else {
+    image.setPixelRgba(x, y, r, g, b, a);
+  }
+}
+
 /// Returns a resized copy of the [src] Image.
 /// If [height] isn't specified, then it will be determined by the aspect
 /// ratio of [src] and [width].
@@ -140,7 +150,8 @@ Image copyResize(Image src,
             }
           }
           final inv = 1.0 / np;
-          dst.setPixelRgba(x1 + x, dstY, r * inv, g * inv, b * inv, a * inv);
+          _setResizedPixel(
+              dst, x1 + x, dstY, r * inv, g * inv, b * inv, a * inv);
         }
       }
     } else if (interpolation == Interpolation.nearest) {
@@ -158,8 +169,8 @@ Image copyResize(Image src,
           final sy = scaleY[y];
           for (var x = 0; x < w; ++x) {
             frame.getPixel(scaleX[x], sy, srcPixel);
-            dst.setPixelRgba(
-                x, y, srcPixel.r, srcPixel.g, srcPixel.b, srcPixel.a);
+            _setResizedPixel(
+                dst, x, y, srcPixel.r, srcPixel.g, srcPixel.b, srcPixel.a);
           }
         }
       } else {
@@ -169,8 +180,8 @@ Image copyResize(Image src,
           final dstY = y1 + y;
           for (var x = 0; x < w; ++x) {
             frame.getPixel(scaleX[x], sy, srcPixel);
-            dst.setPixelRgba(
-                x1 + x, dstY, srcPixel.r, srcPixel.g, srcPixel.b, srcPixel.a);
+            _setResizedPixel(dst, x1 + x, dstY, srcPixel.r, srcPixel.g,
+                srcPixel.b, srcPixel.a);
           }
         }
       }
@@ -200,7 +211,8 @@ Image copyResize(Image src,
             ..getPixel(nx, iy, inc)
             ..getPixel(nx, ny, inn);
 
-          dst.setPixelRgba(
+          _setResizedPixel(
+              dst,
               x1 + x,
               dstY,
               _linear(icc.r.toDouble(), inc.r.toDouble(), icn.r.toDouble(),
@@ -219,11 +231,10 @@ Image copyResize(Image src,
         final dstY = y1 + y;
         for (var x = 0; x < w; ++x) {
           final sx2 = x * dx;
-          dst.setPixel(
-              x1 + x,
-              dstY,
-              frame.getPixelInterpolate(sx2, sy2,
-                  interpolation: interpolation));
+          final pixel =
+              frame.getPixelInterpolate(sx2, sy2, interpolation: interpolation);
+          _setResizedPixel(
+              dst, x1 + x, dstY, pixel.r, pixel.g, pixel.b, pixel.a);
         }
       }
     }

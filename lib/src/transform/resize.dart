@@ -9,6 +9,16 @@ import '../util/image_exception.dart';
 import 'bake_orientation.dart';
 import 'copy_resize.dart';
 
+void _setResizedPixel(Image image, int x, int y, Color color) {
+  if (image.numChannels == 2) {
+    final pixel = image.getPixel(x, y);
+    pixel[0] = color.r;
+    pixel[1] = color.a;
+  } else {
+    image.setPixel(x, y, color);
+  }
+}
+
 /// Resizes [src], reusing its storage where supported. Always use the returned
 /// image: other formats or options may require a separate image. In-place
 /// resizing mutates [src] and retains the original buffer capacity, so raw
@@ -224,7 +234,7 @@ Image resize(Image src,
 
           dst.data!.width = width;
           dst.data!.height = height;
-          dst.setPixel(x1 + x, y1 + y, c);
+          _setResizedPixel(dst, x1 + x, y1 + y, c);
           dst.data!.width = origWidth;
           dst.data!.height = origHeight;
         }
@@ -249,7 +259,7 @@ Image resize(Image src,
             final p = frame.getPixel(scaleX[x], y2);
             dst.data!.width = width;
             dst.data!.height = height;
-            dst.setPixel(x1 + x, y1 + y, p);
+            _setResizedPixel(dst, x1 + x, y1 + y, p);
             dst.data!.width = origWidth;
             dst.data!.height = origHeight;
           }
@@ -267,7 +277,7 @@ Image resize(Image src,
               interpolation: interpolation);
           dst.data!.width = width;
           dst.data!.height = height;
-          dst.setPixel(x, y, p);
+          _setResizedPixel(dst, x, y, p);
           dst.data!.width = origWidth;
           dst.data!.height = origHeight;
         }
